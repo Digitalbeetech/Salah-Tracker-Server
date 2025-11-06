@@ -34,7 +34,7 @@ let SalahTrackerCron = SalahTrackerCron_1 = class SalahTrackerCron {
             let updated = false;
             for (const prayer of record.prayers) {
                 for (const rakat of prayer.rakats) {
-                    if (!rakat.markAsOffered) {
+                    if (!rakat.markAsOffered && !rakat.farz) {
                         rakat.markAsOffered = 'Missed';
                         updated = true;
                     }
