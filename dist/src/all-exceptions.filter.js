@@ -18,6 +18,8 @@ let AllExceptionsFilter = AllExceptionsFilter_1 = class AllExceptionsFilter {
         const ctx = host.switchToHttp();
         const response = ctx.getResponse();
         const request = ctx.getRequest();
+        response.header('Access-Control-Allow-Origin', request.headers.origin || '*');
+        response.header('Access-Control-Allow-Credentials', 'true');
         let status = common_1.HttpStatus.INTERNAL_SERVER_ERROR;
         let message = 'Internal server error';
         if (exception instanceof common_1.HttpException) {
