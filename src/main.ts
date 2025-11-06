@@ -11,10 +11,10 @@ async function bootstrap() {
   app.useGlobalFilters(new AllExceptionsFilter());
 
   app.enableCors({
-    origin: ['http://localhost:3000'], // your frontend URL
-
+    origin: true, // dynamically reflect request origin
     credentials: true, // allow cookies
   });
+
   app.setGlobalPrefix('api');
   await app.listen(process.env.PORT || 3005);
 }

@@ -17,6 +17,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
+    response.header(
+      'Access-Control-Allow-Origin',
+      request.headers.origin || '*',
+    );
+    response.header('Access-Control-Allow-Credentials', 'true');
+
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message: string | object = 'Internal server error';
 
