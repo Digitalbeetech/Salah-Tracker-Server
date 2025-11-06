@@ -19,18 +19,18 @@ import { SalahTrackerModule } from './salah-tracker/salah-tracker.module';
     }),
     MongooseModule.forRoot(process.env.DATABASE_URL),
     DatabaseModule,
-    // ThrottlerModule.forRoot([
-    //   {
-    //     name: 'short',
-    //     ttl: 1000,
-    //     limit: 3,
-    //   },
-    //   {
-    //     name: 'long',
-    //     ttl: 60000,
-    //     limit: 100,
-    //   },
-    // ]),
+    ThrottlerModule.forRoot([
+      {
+        name: 'short',
+        ttl: 1000,
+        limit: 3,
+      },
+      {
+        name: 'long',
+        ttl: 60000,
+        limit: 100000,
+      },
+    ]),
     AuthModule,
     MyLoggerModule,
     SalahTrackerModule,
