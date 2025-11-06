@@ -34,12 +34,13 @@ let SalahTrackerCron = SalahTrackerCron_1 = class SalahTrackerCron {
             let updated = false;
             for (const prayer of record.prayers) {
                 for (const rakat of prayer.rakats) {
-                    if (!rakat.markAsOffered && !rakat.farz) {
+                    if (!rakat.markAsOffered && rakat.farz) {
                         rakat.markAsOffered = 'Missed';
                         updated = true;
                     }
                 }
             }
+            console.log('record', record);
             if (updated) {
                 await record.save();
                 this.logger.log(`Updated missed Salahs for record on ${record.date}`);
@@ -50,7 +51,7 @@ let SalahTrackerCron = SalahTrackerCron_1 = class SalahTrackerCron {
 };
 exports.SalahTrackerCron = SalahTrackerCron;
 __decorate([
-    (0, schedule_1.Cron)(schedule_1.CronExpression.EVERY_DAY_AT_MIDNIGHT),
+    (0, schedule_1.Cron)(schedule_1.CronExpression.EVERY_5_SECONDS),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)

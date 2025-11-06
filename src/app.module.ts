@@ -10,6 +10,7 @@ import { DatabaseModule } from './database/database.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
 import { SalahTrackerModule } from './salah-tracker/salah-tracker.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { SalahTrackerModule } from './salah-tracker/salah-tracker.module';
       envFilePath: '.env', // optional (default is .env)
     }),
     MongooseModule.forRoot(process.env.DATABASE_URL),
+    ScheduleModule.forRoot(), // <-- this line is critical
     DatabaseModule,
     ThrottlerModule.forRoot([
       {

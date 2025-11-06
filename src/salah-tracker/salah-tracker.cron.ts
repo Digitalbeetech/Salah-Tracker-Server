@@ -14,7 +14,7 @@ export class SalahTrackerCron {
   ) {}
 
   // Run every day at 00:00
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  @Cron(CronExpression.EVERY_5_SECONDS)
   async markUnmarkedAsMissed() {
     this.logger.log('Running daily Salah missed update job...');
 
@@ -30,12 +30,14 @@ export class SalahTrackerCron {
 
       for (const prayer of record.prayers) {
         for (const rakat of prayer.rakats) {
-          if (!rakat.markAsOffered && !rakat.farz) {
+          if (!rakat.markAsOffered && rakat.farz) {
             rakat.markAsOffered = 'Missed';
             updated = true;
           }
         }
       }
+
+      console.log('record', record);
 
       if (updated) {
         await record.save();

@@ -18,6 +18,7 @@ const database_module_1 = require("./database/database.module");
 const mongoose_1 = require("@nestjs/mongoose");
 const auth_module_1 = require("./auth/auth.module");
 const salah_tracker_module_1 = require("./salah-tracker/salah-tracker.module");
+const schedule_1 = require("@nestjs/schedule");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -29,6 +30,7 @@ exports.AppModule = AppModule = __decorate([
                 envFilePath: '.env',
             }),
             mongoose_1.MongooseModule.forRoot(process.env.DATABASE_URL),
+            schedule_1.ScheduleModule.forRoot(),
             database_module_1.DatabaseModule,
             throttler_1.ThrottlerModule.forRoot([
                 {
