@@ -51,9 +51,95 @@ export class SalahTrackerService {
     const newRecord = new this.salahRecordModel(createSalahTrackerDto);
     return await newRecord.save();
   }
+  // ✅ Find by month (user-based)
+  async findByMonth(month: string, tokenAccess: string) {
+    const decoded = await this.decodeExternalToken(tokenAccess);
+    const userId = decoded?._id;
+
+    if (!userId) throw new UnauthorizedException('User ID not found in token');
+
+    try {
+      const [year, monthNum] = month.split('-').map(Number);
+      const formatDate = (d: Date) => d.toISOString().split('T')[0];
+
+      const startOfSelected = new Date(year, monthNum - 1, 1);
+      const endOfSelected = new Date(year, monthNum, 0);
+      const selectedStart = formatDate(startOfSelected);
+      const selectedEnd = formatDate(endOfSelected);
+
+      const startOfLast6 = new Date(year, monthNum - 7, 1);
+      const endOfLast6 = new Date(year, monthNum - 1, 0);
+      const last6Start = formatDate(startOfLast6);
+      const last6End = formatDate(endOfLast6);
+
+      const [selectedMonthRecords, lastSixMonthsRecords] = await Promise.all([
+        this.salahRecordModel
+          .find({ userId, date: { $gte: selectedStart, $lte: selectedEnd } })
+          .sort({ date: 1 })
+          .exec(),
+        this.salahRecordModel
+          .find({ userId, date: { $gte: last6Start, $lte: last6End } })
+          .sort({ date: 1 })
+          .exec(),
+      ]);
+
+      return {
+        selectedMonth: {
+          range: { start: selectedStart, end: selectedEnd },
+          records: selectedMonthRecords,
+        },
+        lastSixMonths: {
+          range: { start: last6Start, end: last6End },
+          records: lastSixMonthsRecords,
+        },
+      };
+    } catch (error) {
+      console.error('Error in findByMonth:', error);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  // ✅ Find by date (user-based)
+  async findByDate(date: string, tokenAccess: string) {
+    const decoded = await this.decodeExternalToken(tokenAccess);
+    const userId = decoded?._id;
+
+    if (!userId) throw new UnauthorizedException('User ID not found in token');
+
+    const record = await this.salahRecordModel.findOne({ date, userId }).exec();
+    if (!record)
+      throw new NotFoundException(`No Salah record found for ${date}`);
+    return record;
+  }
+
+  // ✅ Update record (user-based)
+  async update(
+    id: string,
+    tokenAccess: string,
+    updateDto: UpdateSalahTrackerDto,
+  ) {
+    console.log('tokenAccess', tokenAccess);
+    const decoded = await this.decodeExternalToken(tokenAccess);
+    const userId = decoded?._id;
+
+    if (!userId) throw new UnauthorizedException('User ID not found in token');
+
+    const record = await this.salahRecordModel
+      .findOne({ _id: id, userId })
+      .exec();
+    if (!record)
+      throw new UnauthorizedException(
+        'You are not authorized to update this record or it does not exist',
+      );
+
+    Object.assign(record, updateDto);
+    await record.save();
+    return record;
+  }
 
   // ✅ Helper function to decode and verify external token
   private async decodeExternalToken(tokenAccess: string): Promise<any> {
+    console.log('tokenAccess', tokenAccess);
     if (!tokenAccess) {
       throw new UnauthorizedException('Access token is missing');
     }
@@ -77,59 +163,6 @@ export class SalahTrackerService {
       .exec();
   }
 
-  async findByMonth(month: string) {
-    try {
-      // Expect month in format "YYYY-MM"
-      const [year, monthNum] = month.split('-').map(Number);
-
-      const formatDate = (d: Date) => d.toISOString().split('T')[0];
-
-      // ✅ Selected month range
-      const startOfSelected = new Date(year, monthNum - 1, 1);
-      const endOfSelected = new Date(year, monthNum, 0);
-      const selectedStart = formatDate(startOfSelected);
-      const selectedEnd = formatDate(endOfSelected);
-
-      // ✅ Last 6 months range (excluding selected month)
-      const startOfLast6 = new Date(year, monthNum - 7, 1); // Go 6 months before the previous month
-      const endOfLast6 = new Date(year, monthNum - 1, 0); // Last day before selected month
-      const last6Start = formatDate(startOfLast6);
-      const last6End = formatDate(endOfLast6);
-
-      console.log(`Selected month: ${selectedStart} → ${selectedEnd}`);
-      console.log(`Last 6 months: ${last6Start} → ${last6End}`);
-
-      // Fetch both in parallel
-      const [selectedMonthRecords, lastSixMonthsRecords] = await Promise.all([
-        this.salahRecordModel
-          .find({ date: { $gte: selectedStart, $lte: selectedEnd } })
-          .sort({ date: 1 })
-          .exec(),
-        this.salahRecordModel
-          .find({ date: { $gte: last6Start, $lte: last6End } })
-          .sort({ date: 1 })
-          .exec(),
-      ]);
-
-      // Return both sets
-      return {
-        selectedMonth: {
-          range: { start: selectedStart, end: selectedEnd },
-          records: selectedMonthRecords,
-        },
-        lastSixMonths: {
-          range: { start: last6Start, end: last6End },
-          records: lastSixMonthsRecords,
-        },
-      };
-    } catch (error) {
-      console.error('Error in findByMonth:', error);
-      throw new InternalServerErrorException(
-        error.message || 'Error fetching monthly records',
-      );
-    }
-  }
-
   async findOne(id: string) {
     const record = await this.salahRecordModel
       .findById(id)
@@ -139,31 +172,6 @@ export class SalahTrackerService {
     if (!record)
       throw new NotFoundException(`Salah record with ID ${id} not found`);
     return record;
-  }
-
-  // ✅ Find by date (optionally filter by user)
-  async findByDate(
-    date: string,
-    // , userId?: string
-  ) {
-    const filter: any = { date };
-    // if (userId) filter.user = userId;
-
-    const record = await this.salahRecordModel.findOne(filter).exec();
-
-    if (!record)
-      throw new NotFoundException(`No Salah record found for date ${date}`);
-    return record;
-  }
-
-  async update(id: string, updateSalahTrackerDto: UpdateSalahTrackerDto) {
-    const updated = await this.salahRecordModel
-      .findByIdAndUpdate(id, updateSalahTrackerDto, { new: true })
-      .exec();
-
-    if (!updated)
-      throw new NotFoundException(`Salah record with ID ${id} not found`);
-    return updated;
   }
 
   async remove(id: string) {

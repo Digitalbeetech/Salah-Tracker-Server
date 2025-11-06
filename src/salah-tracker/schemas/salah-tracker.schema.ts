@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Document } from 'mongoose';
 
 @Schema()
 export class Rakat {
@@ -12,7 +12,6 @@ export class Rakat {
   @Prop({ type: String, default: null })
   markAsOffered: string | null;
 }
-
 export const RakatSchema = SchemaFactory.createForClass(Rakat);
 
 @Schema()
@@ -32,32 +31,21 @@ export class Prayer {
   @Prop({ type: Boolean, default: false })
   active?: boolean;
 }
-
 export const PrayerSchema = SchemaFactory.createForClass(Prayer);
 
 @Schema({ timestamps: true })
 export class SalahRecord extends Document {
   @Prop({ required: true })
-  date: string; // e.g. "2025-11-03"
+  date: string; // e.g. "2025-11-05"
 
   @Prop({ required: true })
   userId: string;
 
   @Prop({ type: [PrayerSchema], required: true })
   prayers: Prayer[];
-
-  // // 👇 Link Salah Record to a User
-  // @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  // user: Types.ObjectId;
 }
 
 export const SalahRecordSchema = SchemaFactory.createForClass(SalahRecord);
 
-// Optional: Create a compound unique index (user + date)
-SalahRecordSchema.index(
-  {
-    // user: 1,
-    date: 1,
-  },
-  { unique: true },
-);
+// ✅ Compound unique index to prevent duplicates only for same user & date
+// SalahRecordSchema.index({ userId: 1, date: 1 }, { unique: true });

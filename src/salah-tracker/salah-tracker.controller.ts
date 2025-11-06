@@ -35,42 +35,56 @@ export class SalahTrackerController {
     );
   }
 
+  @Get('month/:month')
+  async findByMonth(
+    @Param('month') month: string,
+    @Headers('token') token: string,
+  ) {
+    const tokenAccess = token.split(' ')[1]; // Removes "Bearer "
+    if (!token) {
+      throw new UnauthorizedException('Invalid token format');
+    }
+
+    return this.salahTrackerService.findByMonth(month, tokenAccess);
+  }
+
+  @Get('date/:date')
+  async findByDate(
+    @Param('date') date: string,
+    @Headers('token') token: string,
+  ) {
+    const tokenAccess = token.split(' ')[1]; // Removes "Bearer "
+    if (!token) {
+      throw new UnauthorizedException('Invalid token format');
+    }
+
+    return this.salahTrackerService.findByDate(date, tokenAccess);
+  }
+
+  @Patch(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() dto: UpdateSalahTrackerDto,
+    @Headers('token') token: string,
+  ) {
+    const tokenAccess = token.split(' ')[1]; // Removes "Bearer "
+    if (!token) {
+      throw new UnauthorizedException('Invalid token format');
+    }
+
+    return this.salahTrackerService.update(id, tokenAccess, dto);
+  }
+
   // Get all Salah Records
   @Get()
   async findAll() {
     return await this.salahTrackerService.findAll();
   }
 
-  // ✅ Get record(s) by date
-  @Get('month')
-  async findBymonth(@Query('month') month: string) {
-    return await this.salahTrackerService.findByMonth(month);
-  }
-
-  // ✅ Get record(s) by date
-  @Get('date/:date')
-  async findByDate(
-    @Param('date') date: string,
-    // @Query('userId') userId?: string,
-  ) {
-    return await this.salahTrackerService.findByDate(
-      date,
-      // , userId
-    );
-  }
   // Get a single Salah Record by ID
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return await this.salahTrackerService.findOne(id);
-  }
-
-  // Update Salah Record by ID
-  @Patch(':id')
-  async update(
-    @Param('id') id: string,
-    @Body() updateSalahTrackerDto: UpdateSalahTrackerDto,
-  ) {
-    return await this.salahTrackerService.update(id, updateSalahTrackerDto);
   }
 
   // Delete Salah Record by ID
