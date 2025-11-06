@@ -3,12 +3,14 @@ import {
   NotFoundException,
   ConflictException,
   InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateSalahTrackerDto } from './dto/create-salah-tracker.dto';
 import { UpdateSalahTrackerDto } from './dto/update-salah-tracker.dto';
 import { SalahRecord } from './schemas/salah-tracker.schema';
+import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 export class SalahTrackerService {
@@ -18,27 +20,53 @@ export class SalahTrackerService {
   ) {}
 
   // ✅ Create new record (prevent duplicate for same date & user)
-  async create(createSalahTrackerDto: CreateSalahTrackerDto) {
-    const {
-      date,
-      // , user
-    } = createSalahTrackerDto;
+  async create(
+    createSalahTrackerDto: CreateSalahTrackerDto,
+    tokenAccess: string,
+  ) {
+    const { date } = createSalahTrackerDto;
 
-    const existingRecord = await this.salahRecordModel
-      .findOne({
-        date,
-        // , user
-      })
-      .exec();
-    if (existingRecord) {
-      throw new ConflictException(`A record already exists on date ${date}`);
-      // throw new ConflictException(
-      //   `A record already exists for user ${user} on date ${date}`,
-      // );
+    // 🔹 Decode and verify token
+    const decoded = await this.decodeExternalToken(tokenAccess);
+
+    // 🔹 Attach user ID from token to the DTO
+    createSalahTrackerDto['userId'] = decoded?._id;
+    if (!createSalahTrackerDto['userId']) {
+      throw new UnauthorizedException('User ID not found in token');
     }
 
+    // 🔹 Check if record already exists for same user & date
+    const existingRecord = await this.salahRecordModel.findOne({
+      date,
+      userId: createSalahTrackerDto['userId'],
+    });
+
+    if (existingRecord) {
+      throw new ConflictException(
+        `A record already exists for this user on date ${date}`,
+      );
+    }
+
+    // 🔹 Save new record
     const newRecord = new this.salahRecordModel(createSalahTrackerDto);
     return await newRecord.save();
+  }
+
+  // ✅ Helper function to decode and verify external token
+  private async decodeExternalToken(tokenAccess: string): Promise<any> {
+    if (!tokenAccess) {
+      throw new UnauthorizedException('Access token is missing');
+    }
+
+    try {
+      // Use the same secret/public key that the other app used to sign the JWT
+      const decoded = jwt.verify(tokenAccess, process.env.JWT_SECRET);
+      // console.log('✅ Token verified successfully:', decoded);
+      return decoded;
+    } catch (error) {
+      console.error('❌ JWT verification failed:', error.message);
+      throw new UnauthorizedException('Invalid or expired token');
+    }
   }
 
   async findAll() {

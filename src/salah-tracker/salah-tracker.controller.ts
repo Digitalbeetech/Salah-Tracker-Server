@@ -7,6 +7,8 @@ import {
   Param,
   Delete,
   Query,
+  Headers,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { SalahTrackerService } from './salah-tracker.service';
 import { CreateSalahTrackerDto } from './dto/create-salah-tracker.dto';
@@ -18,8 +20,19 @@ export class SalahTrackerController {
 
   // Create a new Salah Record
   @Post()
-  async create(@Body() createSalahTrackerDto: CreateSalahTrackerDto) {
-    return await this.salahTrackerService.create(createSalahTrackerDto);
+  async create(
+    @Body() createSalahTrackerDto: CreateSalahTrackerDto,
+    @Headers('token') token: string,
+  ) {
+    const tokenAccess = token.split(' ')[1]; // Removes "Bearer "
+    if (!token) {
+      throw new UnauthorizedException('Invalid token format');
+    }
+
+    return await this.salahTrackerService.create(
+      createSalahTrackerDto,
+      tokenAccess,
+    );
   }
 
   // Get all Salah Records

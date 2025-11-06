@@ -40,6 +40,9 @@ export class SalahRecord extends Document {
   @Prop({ required: true })
   date: string; // e.g. "2025-11-03"
 
+  @Prop({ required: true })
+  userId: string;
+
   @Prop({ type: [PrayerSchema], required: true })
   prayers: Prayer[];
 
