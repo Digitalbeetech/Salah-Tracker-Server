@@ -30,18 +30,6 @@ exports.AppModule = AppModule = __decorate([
             }),
             mongoose_1.MongooseModule.forRoot(process.env.DATABASE_URL),
             database_module_1.DatabaseModule,
-            throttler_1.ThrottlerModule.forRoot([
-                {
-                    name: 'short',
-                    ttl: 1000,
-                    limit: 3,
-                },
-                {
-                    name: 'long',
-                    ttl: 60000,
-                    limit: 100,
-                },
-            ]),
             auth_module_1.AuthModule,
             my_logger_module_1.MyLoggerModule,
             salah_tracker_module_1.SalahTrackerModule,
