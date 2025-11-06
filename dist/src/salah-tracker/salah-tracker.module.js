@@ -11,6 +11,7 @@ const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const salah_tracker_service_1 = require("./salah-tracker.service");
 const salah_tracker_controller_1 = require("./salah-tracker.controller");
+const salah_tracker_cron_1 = require("./salah-tracker.cron");
 const salah_tracker_schema_1 = require("./schemas/salah-tracker.schema");
 let SalahTrackerModule = class SalahTrackerModule {
 };
@@ -23,7 +24,7 @@ exports.SalahTrackerModule = SalahTrackerModule = __decorate([
             ]),
         ],
         controllers: [salah_tracker_controller_1.SalahTrackerController],
-        providers: [salah_tracker_service_1.SalahTrackerService],
+        providers: [salah_tracker_service_1.SalahTrackerService, salah_tracker_cron_1.SalahTrackerCron],
     })
 ], SalahTrackerModule);
 //# sourceMappingURL=salah-tracker.module.js.map
