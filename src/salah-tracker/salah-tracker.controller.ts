@@ -25,7 +25,7 @@ export class SalahTrackerController {
     @Headers('token') token: string,
   ) {
     const tokenAccess = token.split(' ')[1]; // Removes "Bearer "
-    if (!token) {
+    if (!tokenAccess) {
       throw new UnauthorizedException('Invalid token format');
     }
 
@@ -41,7 +41,7 @@ export class SalahTrackerController {
     @Headers('token') token: string,
   ) {
     const tokenAccess = token.split(' ')[1]; // Removes "Bearer "
-    if (!token) {
+    if (!tokenAccess) {
       throw new UnauthorizedException('Invalid token format');
     }
 
@@ -54,7 +54,7 @@ export class SalahTrackerController {
     @Headers('token') token: string,
   ) {
     const tokenAccess = token.split(' ')[1]; // Removes "Bearer "
-    if (!token) {
+    if (!tokenAccess) {
       throw new UnauthorizedException('Invalid token format');
     }
 
@@ -68,7 +68,7 @@ export class SalahTrackerController {
     @Headers('token') token: string,
   ) {
     const tokenAccess = token.split(' ')[1]; // Removes "Bearer "
-    if (!token) {
+    if (!tokenAccess) {
       throw new UnauthorizedException('Invalid token format');
     }
 
