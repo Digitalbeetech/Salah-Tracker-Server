@@ -39,6 +39,10 @@ export class CreatePrayerDto {
   rakats: CreateRakatDto[];
 
   @IsString()
+  @IsOptional()
+  time?: string | null;
+
+  @IsString()
   @IsNotEmpty()
   key: string;
 

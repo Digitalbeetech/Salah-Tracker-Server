@@ -25,6 +25,9 @@ export class Prayer {
   @Prop({ type: [RakatSchema], required: true })
   rakats: Rakat[];
 
+  @Prop({ type: String, default: null })
+  time: string | null;
+
   @Prop({ required: true })
   key: string;
 

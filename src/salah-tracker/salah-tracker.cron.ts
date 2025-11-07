@@ -26,6 +26,7 @@ export class SalahTrackerCron {
         name: 'Fajr',
         key: 'Fajr',
         subtext: 'Sunrise at 06:40',
+        time: '',
         rakats: [
           { farz: false, number: 2, markAsOffered: null, time: '' },
           { farz: true, number: 2, markAsOffered: null, time: '' },
@@ -35,6 +36,7 @@ export class SalahTrackerCron {
         name: 'Zuhr',
         key: 'Dhuhr',
         subtext: 'Pray Now',
+        time: '',
         rakats: [
           { farz: false, number: 4, markAsOffered: null, time: '' },
           { farz: true, number: 4, markAsOffered: null, time: '' },
@@ -45,6 +47,7 @@ export class SalahTrackerCron {
         name: 'Asr',
         key: 'Asr',
         subtext: 'Before Sunset',
+        time: '',
         rakats: [
           { farz: false, number: 4, markAsOffered: null, time: '' },
           { farz: true, number: 4, markAsOffered: null, time: '' },
@@ -54,6 +57,7 @@ export class SalahTrackerCron {
         name: 'Maghrib',
         key: 'Maghrib',
         subtext: 'After Sunset',
+        time: '',
         rakats: [
           { farz: true, number: 3, markAsOffered: null, time: '' },
           { farz: false, number: 2, markAsOffered: null, time: '' },
@@ -63,6 +67,7 @@ export class SalahTrackerCron {
         name: 'Isha',
         key: 'Isha',
         subtext: 'Before Midnight',
+        time: '',
         rakats: [
           { farz: false, number: 4, markAsOffered: null, time: '' },
           { farz: true, number: 4, markAsOffered: null, time: '' },
