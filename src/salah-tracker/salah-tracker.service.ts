@@ -118,7 +118,6 @@ export class SalahTrackerService {
     tokenAccess: string,
     updateDto: UpdateSalahTrackerDto,
   ) {
-    console.log('tokenAccess', tokenAccess);
     const decoded = await this.decodeExternalToken(tokenAccess);
     const userId = decoded?._id;
 
@@ -139,7 +138,6 @@ export class SalahTrackerService {
 
   // ✅ Helper function to decode and verify external token
   private async decodeExternalToken(tokenAccess: string): Promise<any> {
-    console.log('tokenAccess', tokenAccess);
     if (!tokenAccess) {
       throw new UnauthorizedException('Access token is missing');
     }
