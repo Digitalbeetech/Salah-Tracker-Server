@@ -22,6 +22,10 @@ export class CreateRakatDto {
   @IsString()
   @IsOptional()
   markAsOffered?: string | null;
+
+  @IsString()
+  @IsOptional()
+  time?: string | null;
 }
 
 export class CreatePrayerDto {

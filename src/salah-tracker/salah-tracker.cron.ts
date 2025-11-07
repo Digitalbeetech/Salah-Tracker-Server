@@ -27,8 +27,8 @@ export class SalahTrackerCron {
         key: 'Fajr',
         subtext: 'Sunrise at 06:40',
         rakats: [
-          { farz: false, number: 2, markAsOffered: null },
-          { farz: true, number: 2, markAsOffered: null },
+          { farz: false, number: 2, markAsOffered: null, time: '' },
+          { farz: true, number: 2, markAsOffered: null, time: '' },
         ],
       },
       {
@@ -36,9 +36,9 @@ export class SalahTrackerCron {
         key: 'Dhuhr',
         subtext: 'Pray Now',
         rakats: [
-          { farz: false, number: 4, markAsOffered: null },
-          { farz: true, number: 4, markAsOffered: null },
-          { farz: false, number: 2, markAsOffered: null },
+          { farz: false, number: 4, markAsOffered: null, time: '' },
+          { farz: true, number: 4, markAsOffered: null, time: '' },
+          { farz: false, number: 2, markAsOffered: null, time: '' },
         ],
       },
       {
@@ -46,8 +46,8 @@ export class SalahTrackerCron {
         key: 'Asr',
         subtext: 'Before Sunset',
         rakats: [
-          { farz: false, number: 4, markAsOffered: null },
-          { farz: true, number: 4, markAsOffered: null },
+          { farz: false, number: 4, markAsOffered: null, time: '' },
+          { farz: true, number: 4, markAsOffered: null, time: '' },
         ],
       },
       {
@@ -55,8 +55,8 @@ export class SalahTrackerCron {
         key: 'Maghrib',
         subtext: 'After Sunset',
         rakats: [
-          { farz: true, number: 3, markAsOffered: null },
-          { farz: false, number: 2, markAsOffered: null },
+          { farz: true, number: 3, markAsOffered: null, time: '' },
+          { farz: false, number: 2, markAsOffered: null, time: '' },
         ],
       },
       {
@@ -64,10 +64,10 @@ export class SalahTrackerCron {
         key: 'Isha',
         subtext: 'Before Midnight',
         rakats: [
-          { farz: false, number: 4, markAsOffered: null },
-          { farz: true, number: 4, markAsOffered: null },
-          { farz: false, number: 3, markAsOffered: null },
-          { farz: false, number: 2, markAsOffered: null },
+          { farz: false, number: 4, markAsOffered: null, time: '' },
+          { farz: true, number: 4, markAsOffered: null, time: '' },
+          { farz: false, number: 3, markAsOffered: null, time: '' },
+          { farz: false, number: 2, markAsOffered: null, time: '' },
         ],
       },
     ];
@@ -144,10 +144,9 @@ export class SalahTrackerCron {
       for (const prayer of record.prayers) {
         for (const rakat of prayer.rakats) {
           if (
-            (!rakat.markAsOffered ||
-              rakat.markAsOffered === '' ||
-              rakat.markAsOffered === null) &&
-            rakat.farz
+            !rakat.markAsOffered ||
+            rakat.markAsOffered === '' ||
+            rakat.markAsOffered === null
           ) {
             rakat.markAsOffered = 'Missed';
             updated = true;

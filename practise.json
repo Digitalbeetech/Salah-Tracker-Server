@@ -1,0 +1,53 @@
+{
+  "date": "2025-11-02",
+  "prayers": [
+    {
+      "name": "Fajr",
+      "key": "Fajr",
+      "subtext": "Sunrise at 06:40",
+      "rakats": [
+        { "farz": false, "number": 2, "markAsOffered": null, "time": "" },
+        { "farz": true, "number": 2, "markAsOffered": null, "time": "" }
+      ]
+    },
+    {
+      "name": "Zuhr",
+      "key": "Dhuhr",
+      "subtext": "Pray Now",
+      "rakats": [
+        { "farz": false, "number": 4, "markAsOffered": null, "time": "" },
+        { "farz": true, "number": 4, "markAsOffered": null, "time": "" },
+        { "farz": false, "number": 2, "markAsOffered": null, "time": "" }
+      ]
+    },
+    {
+      "name": "Asr",
+      "key": "Asr",
+      "subtext": "Before Sunset",
+      "rakats": [
+        { "farz": false, "number": 4, "markAsOffered": null, "time": "" },
+        { "farz": true, "number": 4, "markAsOffered": null, "time": "" }
+      ]
+    },
+    {
+      "name": "Maghrib",
+      "key": "Maghrib",
+      "subtext": "After Sunset",
+      "rakats": [
+        { "farz": true, "number": 3, "markAsOffered": null, "time": "" },
+        { "farz": false, "number": 2, "markAsOffered": null, "time": "" }
+      ]
+    },
+    {
+      "name": "Isha",
+      "key": "Isha",
+      "subtext": "Before Midnight",
+      "rakats": [
+        { "farz": false, "number": 4, "markAsOffered": null, "time": "" },
+        { "farz": true, "number": 4, "markAsOffered": null, "time": "" },
+        { "farz": false, "number": 3, "markAsOffered": null, "time": "" },
+        { "farz": false, "number": 2, "markAsOffered": null, "time": "" }
+      ]
+    }
+  ]
+}

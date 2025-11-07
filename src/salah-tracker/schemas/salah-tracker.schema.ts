@@ -11,6 +11,9 @@ export class Rakat {
 
   @Prop({ type: String, default: null })
   markAsOffered: string | null;
+
+  @Prop({ type: String, default: null })
+  time: string | null;
 }
 export const RakatSchema = SchemaFactory.createForClass(Rakat);
 
