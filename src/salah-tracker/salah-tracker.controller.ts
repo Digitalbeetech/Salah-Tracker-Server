@@ -22,7 +22,7 @@ export class SalahTrackerController {
   @Post()
   async create(
     @Body() createSalahTrackerDto: CreateSalahTrackerDto,
-    @Headers('token') token: string,
+    @Headers('Authorization') token: string,
   ) {
     const tokenAccess = token.split(' ')[1]; // Removes "Bearer "
     if (!tokenAccess) {
@@ -38,7 +38,7 @@ export class SalahTrackerController {
   @Get('month/:month')
   async findByMonth(
     @Param('month') month: string,
-    @Headers('token') token: string,
+    @Headers('Authorization') token: string,
   ) {
     const tokenAccess = token.split(' ')[1]; // Removes "Bearer "
     if (!tokenAccess) {
@@ -51,7 +51,7 @@ export class SalahTrackerController {
   @Get('date/:date')
   async findByDate(
     @Param('date') date: string,
-    @Headers('token') token: string,
+    @Headers('Authorization') token: string,
   ) {
     const tokenAccess = token.split(' ')[1]; // Removes "Bearer "
     if (!tokenAccess) {
@@ -65,7 +65,7 @@ export class SalahTrackerController {
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateSalahTrackerDto,
-    @Headers('token') token: string,
+    @Headers('Authorization') token: string,
   ) {
     const tokenAccess = token.split(' ')[1]; // Removes "Bearer "
     if (!tokenAccess) {
