@@ -24,13 +24,16 @@ export class SalahTrackerService {
     createSalahTrackerDto: CreateSalahTrackerDto,
     tokenAccess: string,
   ) {
-    const { date } = createSalahTrackerDto;
+    const { date, plannerId } = createSalahTrackerDto;
 
     // 🔹 Decode and verify token
     const decoded = await this.decodeExternalToken(tokenAccess);
 
     // 🔹 Attach user ID from token to the DTO
     createSalahTrackerDto['userId'] = decoded?._id;
+
+    createSalahTrackerDto['plannerId'] = plannerId ? plannerId : null;
+
     if (!createSalahTrackerDto['userId']) {
       throw new UnauthorizedException('User ID not found in token');
     }
@@ -98,6 +101,22 @@ export class SalahTrackerService {
       console.error('Error in findByMonth:', error);
       throw new InternalServerErrorException(error.message);
     }
+  }
+
+  // ✅ Find by date (user-based)
+  async findByPlanner(planner: string, tokenAccess: string) {
+    const decoded = await this.decodeExternalToken(tokenAccess);
+    const userId = decoded?._id;
+
+    if (!userId) throw new UnauthorizedException('User ID not found in token');
+    console.log('userId', userId);
+
+    const record = await this.salahRecordModel
+      .findOne({ plannerId: planner, userId })
+      .exec();
+    if (!record)
+      throw new NotFoundException(`No Salah record found for ${planner}`);
+    return record;
   }
 
   // ✅ Find by date (user-based)

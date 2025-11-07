@@ -100,6 +100,19 @@ export class SalahTrackerController {
     return this.salahTrackerService.findByDate(date, tokenAccess);
   }
 
+  @Get('planner/:planner')
+  async findByPlanner(
+    @Param('planner') planner: string,
+    @Headers('Authorization') token: string,
+  ) {
+    const tokenAccess = token.split(' ')[1]; // Removes "Bearer "
+    if (!tokenAccess) {
+      throw new UnauthorizedException('Invalid token format');
+    }
+
+    return this.salahTrackerService.findByPlanner(planner, tokenAccess);
+  }
+
   @Patch(':id')
   async update(
     @Param('id') id: string,

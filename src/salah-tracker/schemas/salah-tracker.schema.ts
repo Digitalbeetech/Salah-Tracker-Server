@@ -19,7 +19,7 @@ export const RakatSchema = SchemaFactory.createForClass(Rakat);
 
 @Schema()
 export class Prayer {
-  @Prop({ required: true })
+  @Prop({ required: true, unique: true })
   name: string;
 
   @Prop({ type: [RakatSchema], required: true })
@@ -35,6 +35,7 @@ export class Prayer {
   active?: boolean;
 }
 export const PrayerSchema = SchemaFactory.createForClass(Prayer);
+PrayerSchema.index({ name: 1 }, { unique: true });
 
 @Schema({ timestamps: true })
 export class SalahRecord extends Document {
@@ -53,5 +54,19 @@ export class SalahRecord extends Document {
 
 export const SalahRecordSchema = SchemaFactory.createForClass(SalahRecord);
 
-// ✅ Compound unique index to prevent duplicates only for same user & date
-// SalahRecordSchema.index({ userId: 1, date: 1 }, { unique: true });
+SalahRecordSchema.pre('save', function (next) {
+  const prayerNames = this.prayers.map((p) => p.name);
+  const duplicates = prayerNames.filter(
+    (name, idx) => prayerNames.indexOf(name) !== idx,
+  );
+
+  if (duplicates.length > 0) {
+    return next(
+      new Error(
+        `Duplicate prayer names found: ${[...new Set(duplicates)].join(', ')}`,
+      ),
+    );
+  }
+
+  next();
+});

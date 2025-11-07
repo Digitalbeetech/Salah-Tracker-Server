@@ -11,6 +11,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
 import { SalahTrackerModule } from './salah-tracker/salah-tracker.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { PlannerModule } from './planner/planner.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     AuthModule,
     MyLoggerModule,
     SalahTrackerModule,
+    PlannerModule,
   ],
   controllers: [AppController],
   providers: [

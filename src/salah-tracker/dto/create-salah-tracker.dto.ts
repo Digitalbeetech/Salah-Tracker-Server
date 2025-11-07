@@ -56,6 +56,10 @@ export class CreateSalahTrackerDto {
   @IsNotEmpty()
   date: string;
 
+  @IsString()
+  @IsNotEmpty()
+  plannerId: string;
+
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreatePrayerDto)
