@@ -51,6 +51,7 @@ export class SalahTrackerService {
     const newRecord = new this.salahRecordModel(createSalahTrackerDto);
     return await newRecord.save();
   }
+
   // ✅ Find by month (user-based)
   async findByMonth(month: string, tokenAccess: string) {
     const decoded = await this.decodeExternalToken(tokenAccess);

@@ -35,6 +35,45 @@ export class SalahTrackerController {
     );
   }
 
+  // 🕌 Bulk Create Salah Records (multiple dates)
+  @Post('bulk')
+  async createBulkSalahRecords(
+    @Body() body: CreateSalahTrackerDto[],
+    @Headers('authorization') authHeader: string,
+  ) {
+    if (!authHeader) {
+      throw new UnauthorizedException('Authorization token is missing');
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const results = [];
+
+    // Process each day's data sequentially
+    for (const salahData of body) {
+      try {
+        const result = await this.salahTrackerService.create(salahData, token);
+        results.push({
+          date: salahData.date,
+          success: true,
+          message: 'Record created successfully',
+          data: result,
+        });
+      } catch (error) {
+        results.push({
+          date: salahData.date,
+          success: false,
+          message: error.message || 'Failed to create record',
+        });
+      }
+    }
+
+    return {
+      success: true,
+      totalProcessed: results.length,
+      summary: results,
+    };
+  }
+
   @Get('month/:month')
   async findByMonth(
     @Param('month') month: string,
