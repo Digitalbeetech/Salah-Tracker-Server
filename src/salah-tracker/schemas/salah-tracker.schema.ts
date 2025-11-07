@@ -28,7 +28,7 @@ export class Prayer {
   @Prop({ required: true })
   key: string;
 
-  @Prop({ required: true })
+  @Prop({ required: false })
   subtext: string;
 
   @Prop({ type: Boolean, default: false })
@@ -43,6 +43,9 @@ export class SalahRecord extends Document {
 
   @Prop({ required: true })
   userId: string;
+
+  @Prop({ required: false, default: null })
+  plannerId: string;
 
   @Prop({ type: [PrayerSchema], required: true })
   prayers: Prayer[];
