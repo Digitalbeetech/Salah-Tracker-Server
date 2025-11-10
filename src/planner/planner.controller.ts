@@ -10,9 +10,9 @@ export class PlannerController {
     return this.plannerService.create(body);
   }
 
-  @Get()
-  async findAll() {
-    return this.plannerService.findAll();
+  @Get('date/:date')
+  async findAll(@Param('date') date: string) {
+    return this.plannerService.findAll(date);
   }
 
   @Patch(':id/status')

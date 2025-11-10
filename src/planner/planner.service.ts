@@ -14,8 +14,22 @@ export class PlannerService {
     return this.plannerModel.create(data);
   }
 
-  async findAll() {
-    return this.plannerModel.find().exec();
+  async findAll(date: string) {
+    // Convert string date (YYYY-MM-DD) to start and end of day
+    const start = new Date(date);
+    start.setUTCHours(0, 0, 0, 0);
+
+    const end = new Date(date);
+    end.setUTCHours(23, 59, 59, 999);
+
+    return this.plannerModel
+      .find({
+        createdAt: {
+          $gte: start,
+          $lte: end,
+        },
+      })
+      .exec();
   }
 
   async updateStatus(id: string, status: string) {
