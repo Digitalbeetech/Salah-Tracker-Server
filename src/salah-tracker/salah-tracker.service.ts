@@ -6,7 +6,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { CreateSalahTrackerDto } from './dto/create-salah-tracker.dto';
 import { UpdateSalahTrackerDto } from './dto/update-salah-tracker.dto';
 import { SalahRecord } from './schemas/salah-tracker.schema';
@@ -30,9 +30,9 @@ export class SalahTrackerService {
     const decoded = await this.decodeExternalToken(tokenAccess);
 
     // 🔹 Attach user ID from token to the DTO
-    createSalahTrackerDto['userId'] = decoded?._id;
+    createSalahTrackerDto['userId'] = new mongoose.Types.ObjectId(decoded?._id);
 
-    createSalahTrackerDto['plannerId'] = plannerId ? plannerId : null;
+    createSalahTrackerDto['plannerId'] = plannerId;
 
     if (!createSalahTrackerDto['userId']) {
       throw new UnauthorizedException('User ID not found in token');
@@ -58,7 +58,7 @@ export class SalahTrackerService {
   // ✅ Find by month (user-based)
   async findByMonth(month: string, tokenAccess: string) {
     const decoded = await this.decodeExternalToken(tokenAccess);
-    const userId = decoded?._id;
+    const userId = new mongoose.Types.ObjectId(decoded?._id);
 
     if (!userId) throw new UnauthorizedException('User ID not found in token');
 
@@ -106,7 +106,7 @@ export class SalahTrackerService {
   // ✅ Find by date (user-based)
   async findByPlanner(planner: string, tokenAccess: string) {
     const decoded = await this.decodeExternalToken(tokenAccess);
-    const userId = decoded?._id;
+    const userId = new mongoose.Types.ObjectId(decoded?._id);
 
     if (!userId) throw new UnauthorizedException('User ID not found in token');
     console.log('userId', userId);
@@ -122,7 +122,7 @@ export class SalahTrackerService {
   // ✅ Find by date (user-based)
   async findByDate(date: string, tokenAccess: string) {
     const decoded = await this.decodeExternalToken(tokenAccess);
-    const userId = decoded?._id;
+    const userId = new mongoose.Types.ObjectId(decoded?._id);
 
     if (!userId) throw new UnauthorizedException('User ID not found in token');
 
@@ -139,7 +139,7 @@ export class SalahTrackerService {
     updateDto: UpdateSalahTrackerDto,
   ) {
     const decoded = await this.decodeExternalToken(tokenAccess);
-    const userId = decoded?._id;
+    const userId = new mongoose.Types.ObjectId(decoded?._id);
 
     if (!userId) throw new UnauthorizedException('User ID not found in token');
 

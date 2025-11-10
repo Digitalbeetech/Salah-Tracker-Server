@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 @Schema()
 export class Rakat {
@@ -45,8 +45,8 @@ export class SalahRecord extends Document {
   @Prop({ required: true })
   date: string; // e.g. "2025-11-05"
 
-  @Prop({ required: true })
-  userId: string;
+  @Prop({ type: Types.ObjectId, ref: 'Users', required: true })
+  userId: Types.ObjectId;
 
   @Prop({ required: false, default: null })
   plannerId: string;
