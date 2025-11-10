@@ -74,6 +74,12 @@ export class SalahTrackerController {
     };
   }
 
+  // Get all Salah Records
+  @Get()
+  async findAll() {
+    return await this.salahTrackerService.findAll();
+  }
+
   @Get('month/:month')
   async findByMonth(
     @Param('month') month: string,
@@ -125,12 +131,6 @@ export class SalahTrackerController {
     }
 
     return this.salahTrackerService.update(id, tokenAccess, dto);
-  }
-
-  // Get all Salah Records
-  @Get()
-  async findAll() {
-    return await this.salahTrackerService.findAll();
   }
 
   // Get a single Salah Record by ID
