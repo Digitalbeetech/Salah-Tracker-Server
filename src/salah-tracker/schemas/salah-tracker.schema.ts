@@ -48,8 +48,13 @@ export class SalahRecord extends Document {
   @Prop({ type: Types.ObjectId, ref: 'Users', required: true })
   userId: Types.ObjectId;
 
-  @Prop({ required: false, default: null })
-  plannerId: string;
+  @Prop({
+    type: Types.ObjectId,
+    ref: 'Planner',
+    required: false,
+    default: null,
+  })
+  plannerId: Types.ObjectId;
 
   @Prop({ type: [PrayerSchema], required: true })
   prayers: Prayer[];

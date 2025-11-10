@@ -9,6 +9,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { Types } from 'mongoose';
 
 export class CreateRakatDto {
   @IsBoolean()
@@ -60,16 +61,13 @@ export class CreateSalahTrackerDto {
   @IsNotEmpty()
   date: string;
 
-  @IsString()
+  // ✅ Use IsMongoId for validation and Types.ObjectId for typing
+  @IsMongoId()
   @IsNotEmpty()
-  plannerId: string;
+  plannerId: Types.ObjectId;
 
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreatePrayerDto)
   prayers: CreatePrayerDto[];
-
-  //   @IsMongoId()
-  //   @IsNotEmpty()
-  //   user: string; // 👈 Must provide user ID
 }

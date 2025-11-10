@@ -32,7 +32,7 @@ export class SalahTrackerService {
     // 🔹 Attach user ID from token to the DTO
     createSalahTrackerDto['userId'] = new mongoose.Types.ObjectId(decoded?._id);
 
-    createSalahTrackerDto['plannerId'] = plannerId;
+    createSalahTrackerDto['plannerId'] = new mongoose.Types.ObjectId(plannerId);
 
     if (!createSalahTrackerDto['userId']) {
       throw new UnauthorizedException('User ID not found in token');
