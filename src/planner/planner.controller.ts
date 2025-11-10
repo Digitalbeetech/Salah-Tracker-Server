@@ -15,7 +15,7 @@ export class PlannerController {
     return this.plannerService.findAll(date);
   }
 
-  @Patch(':id/status')
+  @Patch(':id')
   async updateStatus(
     @Param('id') id: string,
     @Body() body: { status: string },
