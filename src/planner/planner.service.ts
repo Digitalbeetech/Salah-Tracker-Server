@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { Planner } from './schemas/planner.schema';
 
 @Injectable()
@@ -10,29 +10,25 @@ export class PlannerService {
     private readonly plannerModel: Model<Planner>,
   ) {}
 
-  async create(data: { name: string; status?: string }) {
-    return this.plannerModel.create(data);
+  async create(data: { name: string; status?: string }, userId: string) {
+    const payload = {
+      ...data,
+      userId: new mongoose.Types.ObjectId(userId),
+    };
+    return this.plannerModel.create(payload);
   }
 
-  async findAll(date: string) {
-    // Convert string date (YYYY-MM-DD) to start and end of day
-    const start = new Date(date);
-    start.setUTCHours(0, 0, 0, 0);
-
-    const end = new Date(date);
-    end.setUTCHours(23, 59, 59, 999);
+  async findAll(userId: string) {
+    if (!userId) throw new Error('User ID is required');
 
     return this.plannerModel
       .find({
-        createdAt: {
-          $gte: start,
-          $lte: end,
-        },
+        userId: new mongoose.Types.ObjectId(userId), // ✅ filter by user
       })
       .exec();
   }
 
-  async updateStatus(id: string, status: string) {
+  async updateStatus(id: string, status: string, userId: string) {
     return this.plannerModel.findByIdAndUpdate(id, { status }, { new: true });
   }
 }

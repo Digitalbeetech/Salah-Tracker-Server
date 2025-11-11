@@ -38,7 +38,7 @@ export class Prayer {
   active?: boolean;
 }
 export const PrayerSchema = SchemaFactory.createForClass(Prayer);
-PrayerSchema.index({ name: 1 }, { unique: true });
+// PrayerSchema.index({ name: 1 }, { unique: true });
 
 @Schema({ timestamps: true })
 export class SalahRecord extends Document {
