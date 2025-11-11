@@ -9,6 +9,9 @@ export class Planner extends Document {
   @Prop({ required: true })
   userId: string;
 
+  @Prop({ required: true })
+  createdBy: string;
+
   @Prop({ required: true, enum: ['Pending', 'Completed'], default: 'Pending' })
   status: string;
 }
