@@ -93,6 +93,19 @@ export class SalahTrackerController {
     return this.salahTrackerService.findByMonth(month, tokenAccess);
   }
 
+  @Get('year/:year')
+  async findByYear(
+    @Param('year') year: string,
+    @Headers('Authorization') token: string,
+  ) {
+    const tokenAccess = token.split(' ')[1]; // Removes "Bearer "
+    if (!tokenAccess) {
+      throw new UnauthorizedException('Invalid token format');
+    }
+
+    return this.salahTrackerService.findByYear(year, tokenAccess);
+  }
+
   @Get('date/:date')
   async findByDate(
     @Param('date') date: string,

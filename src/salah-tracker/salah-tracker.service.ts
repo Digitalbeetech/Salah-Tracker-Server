@@ -4,6 +4,7 @@ import {
   ConflictException,
   InternalServerErrorException,
   UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
@@ -99,6 +100,71 @@ export class SalahTrackerService {
       };
     } catch (error) {
       console.error('Error in findByMonth:', error);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  // ✅ Find by year (user-based)
+  async findByYear(year: string, tokenAccess: string) {
+    const decoded = await this.decodeExternalToken(tokenAccess);
+    const userId = new mongoose.Types.ObjectId(decoded?._id);
+
+    if (!userId) throw new UnauthorizedException('User ID not found in token');
+
+    try {
+      // Parse year (e.g., "2025")
+      const yearNum = Number(year);
+      if (isNaN(yearNum)) throw new BadRequestException('Invalid year format');
+
+      // Build date ranges for the full year
+      const startOfYear = new Date(yearNum, 0, 1); // Jan 1
+      const endOfYear = new Date(yearNum, 11, 31); // Dec 31
+
+      // Optional: also compare with previous year
+      const startOfPrevYear = new Date(yearNum - 1, 0, 1);
+      const endOfPrevYear = new Date(yearNum - 1, 11, 31);
+
+      // Format for MongoDB date comparison (ISO)
+      const formatDate = (d: Date) => d.toISOString().split('T')[0];
+
+      const [currentYearRecords, lastYearRecords] = await Promise.all([
+        this.salahRecordModel
+          .find({
+            userId,
+            date: {
+              $gte: formatDate(startOfYear),
+              $lte: formatDate(endOfYear),
+            },
+          })
+          .sort({ date: 1 })
+          .exec(),
+        this.salahRecordModel
+          .find({
+            userId,
+            date: {
+              $gte: formatDate(startOfPrevYear),
+              $lte: formatDate(endOfPrevYear),
+            },
+          })
+          .sort({ date: 1 })
+          .exec(),
+      ]);
+
+      return {
+        currentYear: {
+          range: { start: formatDate(startOfYear), end: formatDate(endOfYear) },
+          records: currentYearRecords,
+        },
+        lastYear: {
+          range: {
+            start: formatDate(startOfPrevYear),
+            end: formatDate(endOfPrevYear),
+          },
+          records: lastYearRecords,
+        },
+      };
+    } catch (error) {
+      console.error('Error in findByYear:', error);
       throw new InternalServerErrorException(error.message);
     }
   }
