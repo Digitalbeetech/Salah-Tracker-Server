@@ -14,9 +14,9 @@ export class SalahTrackerCron {
     @InjectConnection() private readonly connection: Connection,
   ) {}
 
-  // Run every day at midnight (set to 5s for testing)
-  // @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
-  @Cron(CronExpression.EVERY_5_MINUTES)
+  // Run every day at midnight (set to 5min for testing)
+  // @Cron(CronExpression.EVERY_5_MINUTES)
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async handleDailySalahTracking() {
     const start = Date.now();
     this.logger.log('🚀 Starting Salah Tracker Cron Job...');
