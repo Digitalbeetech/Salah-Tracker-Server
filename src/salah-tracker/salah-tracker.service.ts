@@ -108,25 +108,21 @@ export class SalahTrackerService {
   async findByYear(year: string, tokenAccess: string) {
     const decoded = await this.decodeExternalToken(tokenAccess);
     const userId = new mongoose.Types.ObjectId(decoded?._id);
-
     if (!userId) throw new UnauthorizedException('User ID not found in token');
 
     try {
-      // Parse year (e.g., "2025")
       const yearNum = Number(year);
       if (isNaN(yearNum)) throw new BadRequestException('Invalid year format');
 
-      // Build date ranges for the full year
-      const startOfYear = new Date(yearNum, 0, 1); // Jan 1
-      const endOfYear = new Date(yearNum, 11, 31); // Dec 31
+      const startOfYear = new Date(yearNum, 0, 1);
+      const endOfYear = new Date(yearNum, 11, 31);
 
-      // Optional: also compare with previous year
       const startOfPrevYear = new Date(yearNum - 1, 0, 1);
       const endOfPrevYear = new Date(yearNum - 1, 11, 31);
 
-      // Format for MongoDB date comparison (ISO)
       const formatDate = (d: Date) => d.toISOString().split('T')[0];
 
+      // ✅ Fetch both years in parallel
       const [currentYearRecords, lastYearRecords] = await Promise.all([
         this.salahRecordModel
           .find({
@@ -150,17 +146,37 @@ export class SalahTrackerService {
           .exec(),
       ]);
 
+      // ✅ Helper: group records by month
+      const groupByMonth = (records: any[]) => {
+        return records.reduce((acc, record) => {
+          // Extract month from date (e.g., 2025-11)
+          const monthKey = record.date.slice(0, 7)?.split('-')[1];
+          if (!acc[monthKey]) acc[monthKey] = [];
+          acc[monthKey].push(record);
+          return acc;
+        }, {});
+      };
+
+      // ✅ Group current & previous year records
+      const groupedCurrentYear = groupByMonth(currentYearRecords);
+      const groupedLastYear = groupByMonth(lastYearRecords);
+
       return {
         currentYear: {
-          range: { start: formatDate(startOfYear), end: formatDate(endOfYear) },
-          records: currentYearRecords,
+          range: {
+            start: formatDate(startOfYear),
+            end: formatDate(endOfYear),
+          },
+          groupedByMonth: groupedCurrentYear,
+          totalRecords: currentYearRecords.length,
         },
         lastYear: {
           range: {
             start: formatDate(startOfPrevYear),
             end: formatDate(endOfPrevYear),
           },
-          records: lastYearRecords,
+          groupedByMonth: groupedLastYear,
+          totalRecords: lastYearRecords.length,
         },
       };
     } catch (error) {
