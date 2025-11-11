@@ -91,52 +91,60 @@ export class SalahTrackerController {
   async findByMonth(
     @Param('month') month: string,
     @Headers('Authorization') token: string,
+    @Query('userId') userApiId: string,
   ) {
     const tokenAccess = token.split(' ')[1]; // Removes "Bearer "
     if (!tokenAccess) {
       throw new UnauthorizedException('Invalid token format');
     }
 
-    return this.salahTrackerService.findByMonth(month, tokenAccess);
+    return this.salahTrackerService.findByMonth(month, tokenAccess, userApiId);
   }
 
   @Get('year/:year')
   async findByYear(
     @Param('year') year: string,
     @Headers('Authorization') token: string,
+    @Query('userId') userApiId: string,
   ) {
     const tokenAccess = token.split(' ')[1]; // Removes "Bearer "
     if (!tokenAccess) {
       throw new UnauthorizedException('Invalid token format');
     }
 
-    return this.salahTrackerService.findByYear(year, tokenAccess);
+    return this.salahTrackerService.findByYear(year, tokenAccess, userApiId);
   }
 
   @Get('date/:date')
   async findByDate(
     @Param('date') date: string,
     @Headers('Authorization') token: string,
+    @Query('userId') userApiId: string,
   ) {
     const tokenAccess = token.split(' ')[1]; // Removes "Bearer "
     if (!tokenAccess) {
       throw new UnauthorizedException('Invalid token format');
     }
 
-    return this.salahTrackerService.findByDate(date, tokenAccess);
+    return this.salahTrackerService.findByDate(date, tokenAccess, userApiId);
   }
 
   @Get('planner/:planner')
   async findByPlanner(
     @Param('planner') planner: string,
     @Headers('Authorization') token: string,
+    @Query('userId') userApiId: string,
   ) {
     const tokenAccess = token.split(' ')[1]; // Removes "Bearer "
     if (!tokenAccess) {
       throw new UnauthorizedException('Invalid token format');
     }
 
-    return this.salahTrackerService.findByPlanner(planner, tokenAccess);
+    return this.salahTrackerService.findByPlanner(
+      planner,
+      tokenAccess,
+      userApiId,
+    );
   }
 
   @Patch(':id')

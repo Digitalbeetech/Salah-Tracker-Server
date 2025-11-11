@@ -19,7 +19,7 @@ export const RakatSchema = SchemaFactory.createForClass(Rakat);
 
 @Schema()
 export class Prayer {
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true, unique: false })
   name: string;
 
   @Prop({ type: [RakatSchema], required: true })

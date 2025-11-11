@@ -29,9 +29,10 @@ export class PlannerController {
     return this.plannerService.create(body, userId, tokenAccess);
   }
 
-  @Get()
-  async findAll(@Query('userId') userId: string) {
-    return this.plannerService.findAll(userId);
+  @Get(`date/:date`)
+  async findAll(@Param('date') date: string, @Query('userId') userId: string) {
+    console.log('date', date, userId);
+    return this.plannerService.findAll(date, userId);
   }
 
   @Patch(':id')

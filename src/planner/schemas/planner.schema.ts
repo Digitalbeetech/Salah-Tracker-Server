@@ -1,13 +1,13 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class Planner extends Document {
   @Prop({ required: true, unique: true })
   name: string;
 
-  @Prop({ required: true })
-  userId: string;
+  @Prop({ type: Types.ObjectId, ref: 'Users', required: true })
+  userId: Types.ObjectId;
 
   @Prop({ required: true })
   createdBy: string;

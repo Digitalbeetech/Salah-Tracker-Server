@@ -26,11 +26,22 @@ export class PlannerService {
     return this.plannerModel.create(payload);
   }
 
-  async findAll(userId: string) {
+  async findAll(date: string, userId: string) {
+    // Convert string date (YYYY-MM-DD) to start and end of day
+    const start = new Date(date);
+    start.setUTCHours(0, 0, 0, 0);
+
+    const end = new Date(date);
+    end.setUTCHours(23, 59, 59, 999);
+
     if (!userId) throw new Error('User ID is required');
 
     return this.plannerModel
       .find({
+        createdAt: {
+          $gte: start,
+          $lte: end,
+        },
         userId: new mongoose.Types.ObjectId(userId), // ✅ filter by user
       })
       .exec();

@@ -63,45 +63,66 @@ export class SalahTrackerService {
     return await newRecord.save();
   }
 
-  // ✅ Find by month (user-based)
-  async findByMonth(month: string, tokenAccess: string) {
+  // ✅ Salah Record Service (Updated)
+  async findByMonth(month: string, tokenAccess: string, userApiId?: string) {
     const decoded = await this.decodeExternalToken(tokenAccess);
-    const userId = new mongoose.Types.ObjectId(decoded?._id);
+    const userId = userApiId
+      ? new mongoose.Types.ObjectId(userApiId)
+      : new mongoose.Types.ObjectId(decoded?._id);
 
     if (!userId) throw new UnauthorizedException('User ID not found in token');
 
     try {
       const [year, monthNum] = month.split('-').map(Number);
+      if (isNaN(year) || isNaN(monthNum))
+        throw new BadRequestException(
+          'Invalid month format (YYYY-MM expected)',
+        );
+
       const formatDate = (d: Date) => d.toISOString().split('T')[0];
 
+      // Selected month range
       const startOfSelected = new Date(year, monthNum - 1, 1);
       const endOfSelected = new Date(year, monthNum, 0);
-      const selectedStart = formatDate(startOfSelected);
-      const selectedEnd = formatDate(endOfSelected);
 
+      // Last 6 months range
       const startOfLast6 = new Date(year, monthNum - 7, 1);
       const endOfLast6 = new Date(year, monthNum - 1, 0);
-      const last6Start = formatDate(startOfLast6);
-      const last6End = formatDate(endOfLast6);
 
       const [selectedMonthRecords, lastSixMonthsRecords] = await Promise.all([
         this.salahRecordModel
-          .find({ userId, date: { $gte: selectedStart, $lte: selectedEnd } })
-          .sort({ date: 1 })
-          .exec(),
+          .find({
+            userId,
+            date: {
+              $gte: formatDate(startOfSelected),
+              $lte: formatDate(endOfSelected),
+            },
+          })
+          .sort({ date: 1 }),
         this.salahRecordModel
-          .find({ userId, date: { $gte: last6Start, $lte: last6End } })
-          .sort({ date: 1 })
-          .exec(),
+          .find({
+            userId,
+            date: {
+              $gte: formatDate(startOfLast6),
+              $lte: formatDate(endOfLast6),
+            },
+          })
+          .sort({ date: 1 }),
       ]);
 
       return {
         selectedMonth: {
-          range: { start: selectedStart, end: selectedEnd },
+          range: {
+            start: formatDate(startOfSelected),
+            end: formatDate(endOfSelected),
+          },
           records: selectedMonthRecords,
         },
         lastSixMonths: {
-          range: { start: last6Start, end: last6End },
+          range: {
+            start: formatDate(startOfLast6),
+            end: formatDate(endOfLast6),
+          },
           records: lastSixMonthsRecords,
         },
       };
@@ -111,10 +132,12 @@ export class SalahTrackerService {
     }
   }
 
-  // ✅ Find by year (user-based)
-  async findByYear(year: string, tokenAccess: string) {
+  async findByYear(year: string, tokenAccess: string, userApiId?: string) {
     const decoded = await this.decodeExternalToken(tokenAccess);
-    const userId = new mongoose.Types.ObjectId(decoded?._id);
+    const userId = userApiId
+      ? new mongoose.Types.ObjectId(userApiId)
+      : new mongoose.Types.ObjectId(decoded?._id);
+
     if (!userId) throw new UnauthorizedException('User ID not found in token');
 
     try {
@@ -129,7 +152,6 @@ export class SalahTrackerService {
 
       const formatDate = (d: Date) => d.toISOString().split('T')[0];
 
-      // ✅ Fetch both years in parallel
       const [currentYearRecords, lastYearRecords] = await Promise.all([
         this.salahRecordModel
           .find({
@@ -139,8 +161,7 @@ export class SalahTrackerService {
               $lte: formatDate(endOfYear),
             },
           })
-          .sort({ date: 1 })
-          .exec(),
+          .sort({ date: 1 }),
         this.salahRecordModel
           .find({
             userId,
@@ -149,24 +170,16 @@ export class SalahTrackerService {
               $lte: formatDate(endOfPrevYear),
             },
           })
-          .sort({ date: 1 })
-          .exec(),
+          .sort({ date: 1 }),
       ]);
 
-      // ✅ Helper: group records by month
-      const groupByMonth = (records: any[]) => {
-        return records.reduce((acc, record) => {
-          // Extract month from date (e.g., 2025-11)
+      const groupByMonth = (records: any[]) =>
+        records.reduce((acc, record) => {
           const monthKey = record.date.slice(0, 7)?.split('-')[1];
           if (!acc[monthKey]) acc[monthKey] = [];
           acc[monthKey].push(record);
           return acc;
         }, {});
-      };
-
-      // ✅ Group current & previous year records
-      const groupedCurrentYear = groupByMonth(currentYearRecords);
-      const groupedLastYear = groupByMonth(lastYearRecords);
 
       return {
         currentYear: {
@@ -174,7 +187,7 @@ export class SalahTrackerService {
             start: formatDate(startOfYear),
             end: formatDate(endOfYear),
           },
-          groupedByMonth: groupedCurrentYear,
+          groupedByMonth: groupByMonth(currentYearRecords),
           totalRecords: currentYearRecords.length,
         },
         lastYear: {
@@ -182,7 +195,7 @@ export class SalahTrackerService {
             start: formatDate(startOfPrevYear),
             end: formatDate(endOfPrevYear),
           },
-          groupedByMonth: groupedLastYear,
+          groupedByMonth: groupByMonth(lastYearRecords),
           totalRecords: lastYearRecords.length,
         },
       };
@@ -192,34 +205,58 @@ export class SalahTrackerService {
     }
   }
 
-  // ✅ Find by date (user-based)
-  async findByPlanner(planner: string, tokenAccess: string) {
+  async findByPlanner(
+    plannerId: string,
+    tokenAccess: string,
+    userApiId?: string,
+  ) {
     const decoded = await this.decodeExternalToken(tokenAccess);
-    const userId = new mongoose.Types.ObjectId(decoded?._id);
-
-    if (!userId) throw new UnauthorizedException('User ID not found in token');
-    console.log('userId', userId);
-
-    const record = await this.salahRecordModel
-      .findOne({ plannerId: planner, userId })
-      .exec();
-    if (!record)
-      throw new NotFoundException(`No Salah record found for ${planner}`);
-    return record;
-  }
-
-  // ✅ Find by date (user-based)
-  async findByDate(date: string, tokenAccess: string) {
-    const decoded = await this.decodeExternalToken(tokenAccess);
-    const userId = new mongoose.Types.ObjectId(decoded?._id);
+    const userId = userApiId
+      ? new mongoose.Types.ObjectId(userApiId)
+      : new mongoose.Types.ObjectId(decoded?._id);
 
     if (!userId) throw new UnauthorizedException('User ID not found in token');
 
-    const record = await this.salahRecordModel.findOne({ date, userId }).exec();
+    const record = await this.salahRecordModel.findOne({ plannerId, userId });
     if (!record)
-      throw new NotFoundException(`No Salah record found for ${date}`);
+      throw new NotFoundException(
+        `No Salah record found for planner ${plannerId}`,
+      );
+
     return record;
   }
+
+  async findByDate(date: string, tokenAccess: string, userApiId?: string) {
+    const decoded = await this.decodeExternalToken(tokenAccess);
+    const userId = userApiId
+      ? new mongoose.Types.ObjectId(userApiId)
+      : new mongoose.Types.ObjectId(decoded?._id);
+
+    if (!userId) throw new UnauthorizedException('User ID not found in token');
+
+    const record = await this.salahRecordModel.findOne({ date, userId });
+    if (!record)
+      throw new NotFoundException(`No Salah record found for date ${date}`);
+
+    return record;
+  }
+
+  async findAll() {
+    return this.salahRecordModel.find().sort({ createdAt: -1 }).exec();
+  }
+  // async findAll(tokenAccess: string, userApiId?: string) {
+  //   const decoded = await this.decodeExternalToken(tokenAccess);
+  //   const userId = userApiId
+  //     ? new mongoose.Types.ObjectId(userApiId)
+  //     : new mongoose.Types.ObjectId(decoded?._id);
+
+  //   if (!userId) throw new UnauthorizedException('User ID not found in token');
+
+  //   return this.salahRecordModel
+  //     .find({ userId })
+  //     .sort({ createdAt: -1 })
+  //     .exec();
+  // }
 
   // ✅ Update record (user-based)
   async update(
@@ -260,14 +297,6 @@ export class SalahTrackerService {
       console.error('❌ JWT verification failed:', error.message);
       throw new UnauthorizedException('Invalid or expired token');
     }
-  }
-
-  async findAll() {
-    return await this.salahRecordModel
-      .find()
-      // .populate('user', 'username email')
-      .sort({ createdAt: -1 })
-      .exec();
   }
 
   async findOne(id: string) {
