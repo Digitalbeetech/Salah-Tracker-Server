@@ -24,6 +24,7 @@ export class SalahTrackerService {
   async create(
     createSalahTrackerDto: CreateSalahTrackerDto,
     tokenAccess: string,
+    userId: string,
   ) {
     const { date, plannerId } = createSalahTrackerDto;
 
@@ -31,7 +32,9 @@ export class SalahTrackerService {
     const decoded = await this.decodeExternalToken(tokenAccess);
 
     // 🔹 Attach user ID from token to the DTO
-    createSalahTrackerDto['userId'] = new mongoose.Types.ObjectId(decoded?._id);
+    createSalahTrackerDto['userId'] = new mongoose.Types.ObjectId(
+      userId ? userId : decoded?._id,
+    );
 
     createSalahTrackerDto['plannerId'] = new mongoose.Types.ObjectId(plannerId);
 

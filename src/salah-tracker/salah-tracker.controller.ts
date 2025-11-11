@@ -22,6 +22,7 @@ export class SalahTrackerController {
   @Post()
   async create(
     @Body() createSalahTrackerDto: CreateSalahTrackerDto,
+    @Query('userId') userId: string,
     @Headers('Authorization') token: string,
   ) {
     const tokenAccess = token.split(' ')[1]; // Removes "Bearer "
@@ -32,6 +33,7 @@ export class SalahTrackerController {
     return await this.salahTrackerService.create(
       createSalahTrackerDto,
       tokenAccess,
+      userId,
     );
   }
 
@@ -39,6 +41,7 @@ export class SalahTrackerController {
   @Post('bulk')
   async createBulkSalahRecords(
     @Body() body: CreateSalahTrackerDto[],
+    @Query('userId') userId: string,
     @Headers('authorization') authHeader: string,
   ) {
     if (!authHeader) {
@@ -51,7 +54,11 @@ export class SalahTrackerController {
     // Process each day's data sequentially
     for (const salahData of body) {
       try {
-        const result = await this.salahTrackerService.create(salahData, token);
+        const result = await this.salahTrackerService.create(
+          salahData,
+          token,
+          userId,
+        );
         results.push({
           date: salahData.date,
           success: true,
