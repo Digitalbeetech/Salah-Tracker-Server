@@ -38,6 +38,10 @@ export class SalahTrackerService {
 
     createSalahTrackerDto['plannerId'] = new mongoose.Types.ObjectId(plannerId);
 
+    createSalahTrackerDto['createdBy'] = new mongoose.Types.ObjectId(
+      decoded?._id,
+    );
+
     if (!createSalahTrackerDto['userId']) {
       throw new UnauthorizedException('User ID not found in token');
     }

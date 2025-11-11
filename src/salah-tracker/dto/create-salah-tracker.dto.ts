@@ -66,6 +66,11 @@ export class CreateSalahTrackerDto {
   @IsNotEmpty()
   plannerId: Types.ObjectId;
 
+  // ✅ Use IsMongoId for validation and Types.ObjectId for typing
+  @IsMongoId()
+  @IsNotEmpty()
+  createdBy: Types.ObjectId;
+
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreatePrayerDto)

@@ -6,6 +6,8 @@ import {
   Patch,
   Param,
   Query,
+  Headers,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { PlannerService } from './planner.service';
 
@@ -17,8 +19,14 @@ export class PlannerController {
   async create(
     @Body() body: { name: string; status?: string },
     @Query('userId') userId: string,
+    @Headers('Authorization') token: string,
   ) {
-    return this.plannerService.create(body, userId);
+    const tokenAccess = token.split(' ')[1]; // Removes "Bearer "
+    if (!tokenAccess) {
+      throw new UnauthorizedException('Invalid token format');
+    }
+
+    return this.plannerService.create(body, userId, tokenAccess);
   }
 
   @Get()
