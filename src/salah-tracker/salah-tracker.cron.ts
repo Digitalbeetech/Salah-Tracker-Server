@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { InjectConnection, InjectModel } from '@nestjs/mongoose';
+import { Connection, Model } from 'mongoose';
 import { SalahRecord } from './schemas/salah-tracker.schema';
 
 @Injectable()
@@ -11,15 +11,16 @@ export class SalahTrackerCron {
   constructor(
     @InjectModel(SalahRecord.name)
     private readonly salahRecordModel: Model<SalahRecord>,
+    @InjectConnection() private readonly connection: Connection,
   ) {}
 
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  // @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  @Cron(CronExpression.EVERY_5_SECONDS)
   async handleDailySalahTracking() {
-    this.logger.log('Running daily Salah tracker job...');
+    this.logger.log('🚀 Starting userwise Salah tracker cron...');
 
-    const today = new Date().toISOString().split('T')[0]; // e.g., '2025-11-05'
+    const today = new Date().toISOString().split('T')[0];
     const todayDate = new Date(today);
-    this.logger.log(`Today's date: ${today}`);
 
     const defaultPrayers = [
       {
@@ -77,37 +78,73 @@ export class SalahTrackerCron {
       },
     ];
 
-    // ✅ 1. If no records exist at all, create yesterday and today
-    const totalRecords = await this.salahRecordModel.countDocuments();
-    if (totalRecords === 0) {
-      const yesterday = new Date(todayDate);
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayStr = yesterday.toISOString().split('T')[0];
+    // 🧍‍♂️ Fetch all users
+    const users = await this.connection
+      .collection('users')
+      .find({}, { projection: { _id: 1 } })
+      .toArray();
 
-      await this.salahRecordModel.insertMany([
-        { date: yesterdayStr, prayers: defaultPrayers },
-        { date: today, prayers: defaultPrayers },
-      ]);
+    this.logger.log(`Found ${users.length} total users.`);
+
+    const batchSize = 20;
+    for (let i = 0; i < users.length; i += batchSize) {
+      const batch = users.slice(i, i + batchSize);
+
+      const batchPromises = batch.map((user) =>
+        this.processUserSalahRecords(
+          user._id,
+          today,
+          todayDate,
+          defaultPrayers,
+        ),
+      );
+
+      const results = await Promise.allSettled(batchPromises);
+
+      const successCount = results.filter(
+        (r) => r.status === 'fulfilled',
+      ).length;
+      const failedCount = results.filter((r) => r.status === 'rejected').length;
 
       this.logger.log(
-        `🆕 Created first two records: ${yesterdayStr}, ${today}`,
+        `✅ Batch ${i / batchSize + 1}: Processed ${successCount} users successfully, ${failedCount} failed.`,
       );
-    } else {
-      // ✅ 2. Create today's record if missing
+    }
+
+    this.logger.log('🏁 Salah tracker cron completed.');
+  }
+
+  private async processUserSalahRecords(
+    userId: any,
+    today: string,
+    todayDate: Date,
+    defaultPrayers: any[],
+  ) {
+    try {
+      // ✅ Skip users who have no Salah records at all
+      const hasRecords = await this.salahRecordModel.exists({ userId });
+      if (!hasRecords) {
+        this.logger.log(`⏭️ Skipping user ${userId} (no Salah records found).`);
+        return;
+      }
+
+      // ✅ Create today's record if missing
       const existingToday = await this.salahRecordModel.findOne({
+        userId,
         date: today,
       });
       if (!existingToday) {
         await this.salahRecordModel.create({
+          userId,
           date: today,
           prayers: defaultPrayers,
         });
-        this.logger.log(`✅ Created new Salah record for ${today}`);
+        this.logger.log(`🆕 Created Salah record for ${userId} (${today}).`);
       }
 
-      // ✅ 3. Fill missing past days if any gap exists
+      // ✅ Fill any missing records
       const firstRecord = await this.salahRecordModel
-        .findOne()
+        .findOne({ userId })
         .sort({ date: 1 })
         .lean();
       if (firstRecord) {
@@ -120,52 +157,65 @@ export class SalahTrackerCron {
           d.setDate(d.getDate() + 1)
         ) {
           const dateStr = d.toISOString().split('T')[0];
-          const exists = await this.salahRecordModel.exists({ date: dateStr });
+          const exists = await this.salahRecordModel.exists({
+            userId,
+            date: dateStr,
+          });
           if (!exists) missingDates.push(dateStr);
         }
 
         if (missingDates.length > 0) {
           const newRecords = missingDates.map((date) => ({
+            userId,
             date,
             prayers: defaultPrayers,
           }));
           await this.salahRecordModel.insertMany(newRecords);
           this.logger.log(
-            `🆕 Created ${newRecords.length} missing record(s): ${missingDates.join(', ')}`,
+            `🆕 User ${userId}: Created ${newRecords.length} missing record(s).`,
           );
         }
       }
-    }
 
-    // ✅ 4. Load all past records and update unmarked rakats as “Missed”
-    const pastRecords = await this.salahRecordModel.find({
-      date: { $lt: today },
-    });
-    let modifiedCount = 0;
+      // ✅ Only mutate existing user's Salah records
+      const pastRecords = await this.salahRecordModel.find({
+        userId,
+        date: { $lt: today },
+      });
 
-    for (const record of pastRecords) {
-      let updated = false;
+      let modifiedCount = 0;
 
-      for (const prayer of record.prayers) {
-        for (const rakat of prayer.rakats) {
-          if (
-            !rakat.markAsOffered ||
-            rakat.markAsOffered === '' ||
-            rakat.markAsOffered === null
-          ) {
-            rakat.markAsOffered = 'Missed';
-            updated = true;
+      for (const record of pastRecords) {
+        let updated = false;
+        for (const prayer of record.prayers) {
+          for (const rakat of prayer.rakats) {
+            if (
+              !rakat.markAsOffered ||
+              rakat.markAsOffered === '' ||
+              rakat.markAsOffered === null
+            ) {
+              rakat.markAsOffered = 'Missed';
+              updated = true;
+            }
           }
+        }
+
+        if (updated) {
+          await record.save();
+          modifiedCount++;
         }
       }
 
-      if (updated) {
-        await record.save();
-        modifiedCount++;
-      }
-    }
+      if (modifiedCount > 0)
+        this.logger.log(
+          `🟠 User ${userId}: Marked missed Salahs in ${modifiedCount} record(s).`,
+        );
+      else this.logger.log(`✅ User ${userId}: No missed Salahs to update.`);
 
-    this.logger.log(`🟠 Marked missed Salahs in ${modifiedCount} record(s).`);
-    this.logger.log('🏁 Daily Salah tracker job completed.');
+      return `Processed user ${userId}`;
+    } catch (err) {
+      this.logger.error(`❌ Error processing user ${userId}: ${err.message}`);
+      throw err;
+    }
   }
 }

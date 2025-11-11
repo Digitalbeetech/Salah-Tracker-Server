@@ -62,19 +62,19 @@ export class SalahRecord extends Document {
 
 export const SalahRecordSchema = SchemaFactory.createForClass(SalahRecord);
 
-SalahRecordSchema.pre('save', function (next) {
-  const prayerNames = this.prayers.map((p) => p.name);
-  const duplicates = prayerNames.filter(
-    (name, idx) => prayerNames.indexOf(name) !== idx,
-  );
+// SalahRecordSchema.pre('save', function (next) {
+//   const prayerNames = this.prayers.map((p) => p.name);
+//   const duplicates = prayerNames.filter(
+//     (name, idx) => prayerNames.indexOf(name) !== idx,
+//   );
 
-  if (duplicates.length > 0) {
-    return next(
-      new Error(
-        `Duplicate prayer names found: ${[...new Set(duplicates)].join(', ')}`,
-      ),
-    );
-  }
+//   if (duplicates.length > 0) {
+//     return next(
+//       new Error(
+//         `Duplicate prayer names found: ${[...new Set(duplicates)].join(', ')}`,
+//       ),
+//     );
+//   }
 
-  next();
-});
+//   next();
+// });
