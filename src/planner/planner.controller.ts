@@ -31,7 +31,7 @@ export class PlannerController {
 
   @Get(`date/:date`)
   async findAll(@Param('date') date: string, @Query('userId') userId: string) {
-    console.log('date', date, userId);
+    // console.log('date', date, userId);
     return this.plannerService.findAll(date, userId);
   }
 

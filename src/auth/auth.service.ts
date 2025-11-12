@@ -41,7 +41,7 @@ export class AuthService {
       refreshToken: '',
     });
 
-    console.log('newUser', newUser);
+    // console.log('newUser', newUser);
 
     const { accessToken, refreshToken } = generateTokens({
       id: newUser?._id?.toString(),

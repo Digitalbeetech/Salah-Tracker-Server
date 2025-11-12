@@ -215,7 +215,7 @@ export class SalahTrackerService {
       ? new mongoose.Types.ObjectId(userApiId)
       : new mongoose.Types.ObjectId(decoded?._id);
     const plannerIdNew = new mongoose.Types.ObjectId(plannerId);
-    console.log(userId, plannerIdNew, 'plannerId');
+    // console.log(userId, plannerIdNew, 'plannerId');
 
     if (!userId) throw new UnauthorizedException('User ID not found in token');
 
