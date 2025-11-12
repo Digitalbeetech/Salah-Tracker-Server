@@ -37,6 +37,14 @@ export class Prayer {
   @Prop({ required: false })
   subtext: string;
 
+  @Prop({
+    type: Types.ObjectId,
+    ref: 'Planner',
+    required: false,
+    default: null,
+  })
+  plannerId: Types.ObjectId;
+
   @Prop({ type: Boolean, default: false })
   active?: boolean;
 }

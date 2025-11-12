@@ -88,6 +88,19 @@ export class SalahTrackerService {
       throw new UnauthorizedException('User ID not found in token');
     }
 
+    console.log('createSalahTrackerDto', createSalahTrackerDto);
+
+    // const varPlanner = createSalahTrackerDto?.prayers?.map((item) => {
+    //   return {
+    //     ...item,
+    //     plannerId: `${
+    //       item?.additionalSalahFlag
+    //         ? new mongoose.Types.ObjectId(createSalahTrackerDto.plannerId)
+    //         : null
+    //     }`,
+    //   };
+    // });
+
     // 🔹 Check if record already exists for same user & date
     const existingRecord = await this.salahRecordModel.findOne({
       date,

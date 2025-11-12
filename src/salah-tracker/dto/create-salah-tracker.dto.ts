@@ -55,6 +55,10 @@ export class CreatePrayerDto {
   @IsNotEmpty()
   subtext: string;
 
+  @IsString()
+  @IsOptional()
+  plannerId: Types.ObjectId;
+
   @IsBoolean()
   @IsOptional()
   active?: boolean;
