@@ -21,6 +21,48 @@ export class SalahTrackerService {
   ) {}
 
   // ✅ Create new record (prevent duplicate for same date & user)
+  // async create(
+  //   createSalahTrackerDto: CreateSalahTrackerDto,
+  //   tokenAccess: string,
+  //   userId: string,
+  // ) {
+  //   const { date, plannerId } = createSalahTrackerDto;
+
+  //   // 🔹 Decode and verify token
+  //   const decoded = await this.decodeExternalToken(tokenAccess);
+
+  //   // 🔹 Attach user ID from token to the DTO
+  //   createSalahTrackerDto['userId'] = new mongoose.Types.ObjectId(
+  //     userId ? userId : decoded?._id,
+  //   );
+
+  //   createSalahTrackerDto['plannerId'] = new mongoose.Types.ObjectId(plannerId);
+
+  //   createSalahTrackerDto['createdBy'] = new mongoose.Types.ObjectId(
+  //     decoded?._id,
+  //   );
+
+  //   if (!createSalahTrackerDto['userId']) {
+  //     throw new UnauthorizedException('User ID not found in token');
+  //   }
+
+  //   // 🔹 Check if record already exists for same user & date
+  //   const existingRecord = await this.salahRecordModel.findOne({
+  //     date,
+  //     userId: createSalahTrackerDto['userId'],
+  //   });
+
+  //   if (existingRecord) {
+  //     throw new ConflictException(
+  //       `A record already exists for this user on date ${date}`,
+  //     );
+  //   }
+
+  //   // 🔹 Save new record
+  //   const newRecord = new this.salahRecordModel(createSalahTrackerDto);
+  //   return await newRecord.save();
+  // }
+
   async create(
     createSalahTrackerDto: CreateSalahTrackerDto,
     tokenAccess: string,
@@ -32,35 +74,47 @@ export class SalahTrackerService {
     const decoded = await this.decodeExternalToken(tokenAccess);
 
     // 🔹 Attach user ID from token to the DTO
-    createSalahTrackerDto['userId'] = new mongoose.Types.ObjectId(
+    const resolvedUserId = new mongoose.Types.ObjectId(
       userId ? userId : decoded?._id,
     );
 
+    createSalahTrackerDto['userId'] = resolvedUserId;
     createSalahTrackerDto['plannerId'] = new mongoose.Types.ObjectId(plannerId);
-
     createSalahTrackerDto['createdBy'] = new mongoose.Types.ObjectId(
       decoded?._id,
     );
 
-    if (!createSalahTrackerDto['userId']) {
+    if (!resolvedUserId) {
       throw new UnauthorizedException('User ID not found in token');
     }
 
     // 🔹 Check if record already exists for same user & date
     const existingRecord = await this.salahRecordModel.findOne({
       date,
-      userId: createSalahTrackerDto['userId'],
+      userId: resolvedUserId,
     });
 
     if (existingRecord) {
-      throw new ConflictException(
-        `A record already exists for this user on date ${date}`,
+      // 🔹 If record exists → update it
+      const updatedRecord = await this.salahRecordModel.findByIdAndUpdate(
+        existingRecord._id,
+        { $set: createSalahTrackerDto },
+        { new: true }, // return updated document
       );
+      return {
+        message: `Existing record updated for user on date ${date}`,
+        data: updatedRecord,
+      };
     }
 
     // 🔹 Save new record
     const newRecord = new this.salahRecordModel(createSalahTrackerDto);
-    return await newRecord.save();
+    const savedRecord = await newRecord.save();
+
+    return {
+      message: `New record created for user on date ${date}`,
+      data: savedRecord,
+    };
   }
 
   // ✅ Salah Record Service (Updated)

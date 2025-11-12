@@ -45,6 +45,10 @@ export class CreatePrayerDto {
 
   @IsString()
   @IsNotEmpty()
+  additionalSalahFlag?: Boolean | false;
+
+  @IsString()
+  @IsNotEmpty()
   key: string;
 
   @IsString()

@@ -28,6 +28,9 @@ export class Prayer {
   @Prop({ type: String, default: null })
   time: string | null;
 
+  @Prop({ type: Boolean, default: false })
+  additionalSalahFlag?: boolean;
+
   @Prop({ required: true })
   key: string;
 
