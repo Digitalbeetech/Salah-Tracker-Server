@@ -292,6 +292,7 @@ export class SalahTrackerService {
   }
 
   async findByDate(date: string, tokenAccess: string, userApiId?: string) {
+    // 🔹 Decode and resolve userId
     const decoded = await this.decodeExternalToken(tokenAccess);
     const userId = userApiId
       ? new mongoose.Types.ObjectId(userApiId)
@@ -299,11 +300,21 @@ export class SalahTrackerService {
 
     if (!userId) throw new UnauthorizedException('User ID not found in token');
 
-    const record = await this.salahRecordModel.findOne({ date, userId });
+    // 🔹 Find record and populate related planner data
+    const record = await this.salahRecordModel
+      .findOne({ date, userId })
+      .populate([
+        { path: 'plannerId' }, // Populate top-level planner
+        { path: 'prayers.plannerId' }, // Populate nested prayer planners
+      ]);
+
     if (!record)
       throw new NotFoundException(`No Salah record found for date ${date}`);
 
-    return record;
+    return {
+      message: `✅ Salah record found for date ${date}`,
+      data: record,
+    };
   }
 
   async findAll() {
