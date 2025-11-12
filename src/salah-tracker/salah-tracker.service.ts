@@ -66,67 +66,68 @@ export class SalahTrackerService {
   async create(
     createSalahTrackerDto: CreateSalahTrackerDto,
     tokenAccess: string,
-    userId: string,
+    userId?: string,
   ) {
-    const { date, plannerId } = createSalahTrackerDto;
+    const { date, plannerId, prayers } = createSalahTrackerDto;
 
-    // 🔹 Decode and verify token
+    // 🔹 Decode token and get userId
     const decoded = await this.decodeExternalToken(tokenAccess);
-
-    // 🔹 Attach user ID from token to the DTO
-    const resolvedUserId = new mongoose.Types.ObjectId(
-      userId ? userId : decoded?._id,
-    );
-
-    createSalahTrackerDto['userId'] = resolvedUserId;
-    createSalahTrackerDto['plannerId'] = new mongoose.Types.ObjectId(plannerId);
-    createSalahTrackerDto['createdBy'] = new mongoose.Types.ObjectId(
-      decoded?._id,
-    );
+    const resolvedUserId = new mongoose.Types.ObjectId(userId || decoded?._id);
 
     if (!resolvedUserId) {
       throw new UnauthorizedException('User ID not found in token');
     }
 
-    console.log('createSalahTrackerDto', createSalahTrackerDto);
+    // 🔹 Attach IDs to DTO
+    const resolvedPlannerId = new mongoose.Types.ObjectId(plannerId);
+    createSalahTrackerDto['userId'] = resolvedUserId;
+    createSalahTrackerDto['plannerId'] = resolvedPlannerId;
+    createSalahTrackerDto['createdBy'] = new mongoose.Types.ObjectId(
+      decoded?._id,
+    );
 
-    // const varPlanner = createSalahTrackerDto?.prayers?.map((item) => {
-    //   return {
-    //     ...item,
-    //     plannerId: `${
-    //       item?.additionalSalahFlag
-    //         ? new mongoose.Types.ObjectId(createSalahTrackerDto.plannerId)
-    //         : null
-    //     }`,
-    //   };
-    // });
+    // 🔹 Map prayers and only attach plannerId to additionalSalahFlag = true
+    createSalahTrackerDto.prayers = prayers.map((item) => ({
+      ...item,
+      plannerId: item.additionalSalahFlag ? resolvedPlannerId : null,
+    }));
 
-    // 🔹 Check if record already exists for same user & date
+    // 🔹 Check for existing record (same date + user)
     const existingRecord = await this.salahRecordModel.findOne({
       date,
       userId: resolvedUserId,
     });
 
     if (existingRecord) {
-      // 🔹 If record exists → update it
-      const updatedRecord = await this.salahRecordModel.findByIdAndUpdate(
-        existingRecord._id,
-        { $set: createSalahTrackerDto },
-        { new: true }, // return updated document
-      );
+      // 🔹 Update existing record
+      const updatedRecord = await this.salahRecordModel
+        .findByIdAndUpdate(
+          existingRecord._id,
+          { $set: createSalahTrackerDto },
+          { new: true },
+        )
+        .populate('plannerId') // ✅ populate planner reference
+        .populate('prayers.plannerId'); // ✅ populate nested planner
+
       return {
-        message: `Existing record updated for user on date ${date}`,
+        message: `✅ Existing record updated for user on date ${date}`,
         data: updatedRecord,
       };
     }
 
-    // 🔹 Save new record
+    // 🔹 Create new record
     const newRecord = new this.salahRecordModel(createSalahTrackerDto);
     const savedRecord = await newRecord.save();
 
+    // ✅ Populate planner data in response
+    const populatedRecord = await savedRecord.populate([
+      { path: 'plannerId' },
+      { path: 'prayers.plannerId' },
+    ]);
+
     return {
-      message: `New record created for user on date ${date}`,
-      data: savedRecord,
+      message: `🆕 New record created for user on date ${date}`,
+      data: populatedRecord,
     };
   }
 

@@ -66,7 +66,6 @@ export class SalahRecord extends Document {
     default: null,
   })
   plannerId: Types.ObjectId;
-
   @Prop({ type: [PrayerSchema], required: true })
   prayers: Prayer[];
 }
