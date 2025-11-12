@@ -259,28 +259,20 @@ export class SalahTrackerService {
     }
   }
 
-  async findByPlanner(
-    plannerId: string,
-    tokenAccess: string,
-    userApiId?: string,
-  ) {
+  async findByPlanner(date: string, tokenAccess: string, userApiId?: string) {
     const decoded = await this.decodeExternalToken(tokenAccess);
     const userId = userApiId
       ? new mongoose.Types.ObjectId(userApiId)
       : new mongoose.Types.ObjectId(decoded?._id);
-    const plannerIdNew = new mongoose.Types.ObjectId(plannerId);
-    // console.log(userId, plannerIdNew, 'plannerId');
 
     if (!userId) throw new UnauthorizedException('User ID not found in token');
 
     const record = await this.salahRecordModel.findOne({
-      plannerId: plannerIdNew,
+      date,
       userId,
     });
     if (!record)
-      throw new NotFoundException(
-        `No Salah record found for planner ${plannerId}`,
-      );
+      throw new NotFoundException(`No Salah record found for date ${date}`);
 
     return record;
   }

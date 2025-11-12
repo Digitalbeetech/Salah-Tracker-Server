@@ -129,9 +129,9 @@ export class SalahTrackerController {
     return this.salahTrackerService.findByDate(date, tokenAccess, userApiId);
   }
 
-  @Get('planner/:planner')
+  @Get('date/:date')
   async findByPlanner(
-    @Param('planner') planner: string,
+    @Param('date') date: string,
     @Headers('Authorization') token: string,
     @Query('userId') userApiId: string,
   ) {
@@ -140,11 +140,7 @@ export class SalahTrackerController {
       throw new UnauthorizedException('Invalid token format');
     }
 
-    return this.salahTrackerService.findByPlanner(
-      planner,
-      tokenAccess,
-      userApiId,
-    );
+    return this.salahTrackerService.findByPlanner(date, tokenAccess, userApiId);
   }
 
   @Patch(':id')
