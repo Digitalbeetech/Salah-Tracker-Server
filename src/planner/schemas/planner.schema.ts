@@ -10,7 +10,7 @@ export class Planner extends Document {
   userId: Types.ObjectId;
 
   @Prop({ required: true })
-  plannerType: string;
+  planType: string;
 
   @Prop({ required: true })
   createdBy: string;

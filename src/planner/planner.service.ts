@@ -12,7 +12,7 @@ export class PlannerService {
   ) {}
 
   async create(
-    data: { name: string; status?: string; plannerType?: string },
+    data: { name: string; status?: string; planType?: string },
     userId: string,
     tokenAccess: string,
   ) {
@@ -49,7 +49,7 @@ export class PlannerService {
 
   async updateStatus(
     id: string,
-    body: { status: string; plannerType: string },
+    body: { status: string; planType: string },
     userId: string,
   ) {
     return this.plannerModel.findByIdAndUpdate(id, body, { new: true });
