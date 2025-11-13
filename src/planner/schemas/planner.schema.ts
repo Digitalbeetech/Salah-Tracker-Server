@@ -10,6 +10,9 @@ export class Planner extends Document {
   userId: Types.ObjectId;
 
   @Prop({ required: true })
+  plannerType: string;
+
+  @Prop({ required: true })
   createdBy: string;
 
   @Prop({ required: true, enum: ['Pending', 'Completed'], default: 'Pending' })

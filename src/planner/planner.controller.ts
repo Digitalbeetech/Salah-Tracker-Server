@@ -17,7 +17,7 @@ export class PlannerController {
 
   @Post()
   async create(
-    @Body() body: { name: string; status?: string },
+    @Body() body: { name: string; status?: string; plannerType?: string },
     @Query('userId') userId: string,
     @Headers('Authorization') token: string,
   ) {
@@ -38,9 +38,13 @@ export class PlannerController {
   @Patch(':id')
   async updateStatus(
     @Param('id') id: string,
-    @Body() body: { status: string },
+    @Body() body: { status: string; plannerType: string },
     @Query('userId') userId: string,
   ) {
-    return this.plannerService.updateStatus(id, body.status, userId);
+    return this.plannerService.updateStatus(
+      id,
+      { status: body?.status, plannerType: body?.plannerType },
+      userId,
+    );
   }
 }

@@ -12,7 +12,7 @@ export class PlannerService {
   ) {}
 
   async create(
-    data: { name: string; status?: string },
+    data: { name: string; status?: string; plannerType?: string },
     userId: string,
     tokenAccess: string,
   ) {
@@ -47,8 +47,12 @@ export class PlannerService {
       .exec();
   }
 
-  async updateStatus(id: string, status: string, userId: string) {
-    return this.plannerModel.findByIdAndUpdate(id, { status }, { new: true });
+  async updateStatus(
+    id: string,
+    body: { status: string; plannerType: string },
+    userId: string,
+  ) {
+    return this.plannerModel.findByIdAndUpdate(id, body, { new: true });
   }
 
   // ✅ Helper function to decode and verify external token
